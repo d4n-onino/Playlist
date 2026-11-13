@@ -21,47 +21,35 @@
   <div id="app"></div>
   <script src="https://unpkg.com/webamp@1.5.0/built/webamp.bundle.min.js"></script>
   <script>
-    const skinUrl = new URL("skin.wsz?v=3", window.location.href).href;
+    const username = "YOUR_USERNAME";
+    const repo = "YOUR_REPO_NAME";
+    const skinUrl = new URL("skin.wsz?v=5", window.location.href).href;
 
-    const webamp = new Webamp({
-      initialSkin: {
-        url: skinUrl
-      },
-      initialTracks: [
-        {
-          metaData: { title: "Everybody Votes Channel - Suggest a Question" },
-          url: "https://dl.dropboxusercontent.com/scl/fi/supaym1mzcutmamqg0yf2/Everybody-votes-channel-music-Suggest-a-question.mp3?rlkey=yurug348x6lmvkz0pocl17r98&st=lxp0k6zh&raw=1"
-        },
-        {
-          metaData: { title: "Photo Channel - SD Card Photo List" },
-          url: "https://dl.dropboxusercontent.com/scl/fi/q6b7nm71v1na8assgj5qe/Photo-Channel-SD-card-photo-list.mp3?rlkey=t8zn9kri9no6muo2vcufxopfj&st=dzs4f705&raw=1"
-        },
-        {
-          metaData: { title: "Photo Channel - Select Photo Source" },
-          url: "https://dl.dropboxusercontent.com/scl/fi/gugg33uie64l1v94og2f8/Photo-Channel-Select-photo-source.mp3?rlkey=qsf0yswcrx9zwxr2d2plzwodr&st=9ct8l0en&raw=1"
-        },
-        {
-          metaData: { title: "Scizzie - Aquatic Ambience" },
-          url: "https://dl.dropboxusercontent.com/scl/fi/xlv4t8adkg41g08b4gu1q/Scizzie-Aquatic-ambience.mp3?rlkey=cfe8o6irxpeam70a7ull221qf&st=xpiingik&raw=1"
-        },
-        {
-          metaData: { title: "Takeshi Abo - LEASE" },
-          url: "https://dl.dropboxusercontent.com/scl/fi/be8lkfsysi2pqa5m0v07f/Takeshi-Abo-LEASE.mp3?rlkey=ovqzli7an6eu9rt75g6cmif2a&st=5gr5rged&raw=1"
-        },
-        {
-          metaData: { title: "Wii Party - Main Menu Music" },
-          url: "https://dl.dropboxusercontent.com/scl/fi/pz792hft2r9drg5vkqy0i/Wii-party-soundtrack-Main-menu-music.mp3?rlkey=hpeoghpgt3m65zxucfysquko4&st=wrsvqsa2&raw=1"
-        },
-        {
-          metaData: { title: "Yume 2kki - Lotus Waters" },
-          url: "https://dl.dropboxusercontent.com/scl/fi/zi1i8bshbqqqnr5v1lllo/Yume-2kki-Lotus-waters.mp3?rlkey=i06ai5s28anaj9jbs7vvblght&st=q0hqmsms&raw=1"
-        }
-      ]
-    });
+    async function initWebamp() {
+      let tracks = [];
+      try {
+        const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/`);
+        const files = await res.json();
+        tracks = files
+          .filter(f => f.name.toLowerCase().endsWith(".mp3"))
+          .map(f => ({
+            metaData: { title: f.name.replace(/\.mp3$/i, "").replace(/[-_]/g, " ") },
+            url: f.download_url
+          }));
+      } catch (e) {
+        console.error("Failed to fetch tracks from GitHub:", e);
+      }
 
-    webamp.renderWhenReady(document.getElementById("app")).then(() => {
+      const webamp = new Webamp({
+        initialSkin: { url: skinUrl },
+        initialTracks: tracks
+      });
+
+      await webamp.renderWhenReady(document.getElementById("app"));
       webamp.setSkinFromUrl(skinUrl);
-    });
+    }
+
+    initWebamp();
   </script>
 </body>
 </html>
