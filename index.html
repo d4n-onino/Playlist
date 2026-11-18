@@ -23,21 +23,30 @@
   <script>
     const username = "d4n-onino";
     const repo = "Playlist";
-    const skinUrl = new URL("skin.wsz?v=8", window.location.href).href;
 
     async function initWebamp() {
       let tracks = [];
+      let skinUrl = new URL("skin.wsz?v=" + Date.now(), window.location.href).href;
+
       try {
-        const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/`);
+        const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/?t=${Date.now()}`, {
+          cache: "no-store"
+        });
         const files = await res.json();
+
         tracks = files
           .filter(f => f.name.toLowerCase().endsWith(".mp3"))
           .map(f => ({
             metaData: { title: f.name.replace(/\.mp3$/i, "").replace(/[-_]/g, " ") },
             url: f.download_url
           }));
+
+        const skinFile = files.find(f => f.name.toLowerCase().endsWith(".wsz"));
+        if (skinFile) {
+          skinUrl = `${skinFile.download_url}?t=${Date.now()}`;
+        }
       } catch (e) {
-        console.error("Failed to fetch tracks from GitHub:", e);
+        console.error("Failed to fetch files from GitHub:", e);
       }
 
       const webamp = new Webamp({
